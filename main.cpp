@@ -7,7 +7,7 @@
 
 #define SHOW_DEBUG
 
-static const char* OUTPUT_FILE = "assets/output/crc32_hash.txt";
+static const char* OUTPUT_FILE = "assets/output/aboba_hash.txt";
 static const char* INPUT_FILE  = "assets/input/in.txt";
 
 static const size_t TABLE_SIZE = 10000;
@@ -21,7 +21,7 @@ static void InsertFileData(hashtable_t* table, const char* file_name);
 int main(const int argc, const char* argv[])
 {
 
-    hashtable_t* table = HashtableCtor(TABLE_SIZE, CRC32_Hash);
+    hashtable_t* table = HashtableCtor(TABLE_SIZE, ROL_Hash);
 
     InsertFileData(table, INPUT_FILE);
 
