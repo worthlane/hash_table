@@ -6,12 +6,12 @@
 static inline u_int32_t Rol(u_int32_t num)
 {
     return ((num << 1)) | (num >> 31);
-};
+}
 
 static inline u_int32_t Ror(u_int32_t num)
 {
     return ((num >> 1)) | (num << 31);
-};
+}
 
 // ======================================================
 
@@ -102,18 +102,20 @@ u_int32_t CRC32_Hash(const char* key)
 
     uint32_t crc = -1;
 
-    size_t size = strnlen(key, MAX_KEY_LEN);
+    int i = 0;
 
-    for (size_t i = 0; i < size; i++)
+    while (key[i] != 0)
     {
         crc = crc ^ (key[i] << 24);
         for (int bit = 0; bit < 8; bit++)
         {
             if (crc & (1L << 31))
                 crc = (crc << 1) ^ 0x04C11DB7;
-            else                   
+            else
                 crc = (crc << 1);
         }
+
+        i++;
     }
     return ~crc;
 }
