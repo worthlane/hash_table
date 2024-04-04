@@ -16,7 +16,7 @@ def plot_bar_chart(x_values, y_values):
     plt.xlabel('Table cell')
     plt.ylabel('List length')
     plt.title('ASCII sum hash (small table)')
-    #plt.ylim(0, 50)
+    plt.ylim(0, 50)
     #plt.xlim(0, 3000)
 
     plt.show()
