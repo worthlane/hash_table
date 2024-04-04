@@ -64,7 +64,7 @@ static float CountDisperce(const char* input_file, const float avg)
 
     fclose(fp);
 
-    return (sum / cnt);
+    return sqrt((sum / cnt));
 }
 
 
