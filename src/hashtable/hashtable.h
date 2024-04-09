@@ -26,10 +26,10 @@ struct hashtable_t
     hashfunc_t func;
 };
 
+node_t*      FindKeyInList(node_t* root_cell, const char* key);
 hashtable_t* HashtableCtor(size_t size, hashfunc_t func);
 void         HashtableDtor(hashtable_t* table);
 void         HashtableInsert(hashtable_t* table, const char* key, int val);
-void         HashtableErase(hashtable_t* table, const char* key);
 int          HashtableGet(hashtable_t* table, const char* key);
 
 void         DumpHashtableSizes(hashtable_t* table, FILE* fp);
