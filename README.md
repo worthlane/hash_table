@@ -411,7 +411,7 @@ static inline int _StrCmp(const char* key1, const char* key2)
         "xor        %0, %0\n"                   // result = 0
         "vmovdqu    ymm0, YMMWORD PTR [%1]\n"   // place str1 in ymm0
         "vptest     ymm0, YMMWORD PTR [%2]\n"   // compare registers
-        "setnc      %b0\n"                      // set bit if (CF == 0 && ZF == 0)
+        "setnc      %b0\n"                      // set bit if CF == 0
         "vzeroupper\n"
         ".att_syntax prefix\n"
         : "=&r" (result)
