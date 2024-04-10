@@ -128,10 +128,10 @@ uint32_t Fast_CRC32_Hash(const char* key)
 
     uint32_t hash = 0;
 
-    hash = _mm_crc32_u32(hash, *((uint32_t*) key));
-    hash = _mm_crc32_u32(hash, *((uint32_t*) key + 1));
-    hash = _mm_crc32_u32(hash, *((uint32_t*) key + 2));
-    hash = _mm_crc32_u32(hash, *((uint32_t*) key + 3));
+    hash = _mm_crc32_u64(hash, *((uint64_t*) key));
+    hash = _mm_crc32_u64(hash, *((uint64_t*) key + 1));
+    hash = _mm_crc32_u64(hash, *((uint64_t*) key + 2));
+    hash = _mm_crc32_u64(hash, *((uint64_t*) key + 3));
 
     return hash;
 }

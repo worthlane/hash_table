@@ -15,14 +15,14 @@ def plot_bar_chart(x_values, y_values):
     plt.bar(x_values, y_values, width=1.0)
     plt.xlabel('Table cell')
     plt.ylabel('List length')
-    plt.title('ASCII sum hash (small table)')
+    plt.title('Intrinsic crc32 hashing')
     plt.ylim(0, 50)
     #plt.xlim(0, 3000)
 
     plt.show()
 
 def main():
-    filename = 'ASCII_sum_hash_SMALL.txt'
+    filename = 'fast_crc32_hash.txt'
     x_values, y_values = read_data(filename)
     plot_bar_chart(x_values, y_values)
 

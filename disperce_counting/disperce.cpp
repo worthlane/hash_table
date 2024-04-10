@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <math.h>
 
-static const char* INPUT_FILE = "assets/output/crc32_hash.txt";
+static const char* INPUT_FILE = "assets/output/fast_crc32_hash.txt";
 
 static float CountAverage(const char* input_file);
 static float CountDisperce(const char* input_file, const float avg);

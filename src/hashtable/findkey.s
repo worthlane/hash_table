@@ -3,7 +3,7 @@ section .text
 global _FindKey                                         ; predefined entry point name for ld
                                                         ; rdi = node_t* root_cell, rsi = const char* key
 _FindKey:           mov     rdx, QWORD [rdi]            ; rdx = root_cell
-                    vmovdqu    ymm0, YWORD [rsi]
+                    vmovdqu    ymm0, YWORD [rsi]        ; ymm0 = key
                     mov     rax, rdi                    ;  |
                     test    rdx, rdx                    ;  | return root_cell if cell->key == 0, rax = cur_cell
                     jne     .COMPARE_KEYS               ;  |
