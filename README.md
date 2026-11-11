@@ -1,38 +1,38 @@
-# Лабораторная работа по изучению свойств хеш-таблиц
+# Lab Report: Exploring Hash Table Properties
 
-В нашей работе мы реализуем хеш-таблицу с закрытой адресацией методом цепочек. При такой реализации, таблица будет состоять из ячеек, каждая из которых будет хранить указатель на начало некоторого списка (списки будут нужны для избежания коллизий). 
+In this project, we implement a hash table using separate chaining. The table consists of buckets, each storing a pointer to the beginning of a linked list. These lists are used to resolve collisions.
 
-| ![](assets/pictures/table_example.png) |
+| ![](assets/pictures/hashtable-1.png) |
 | :-: |
-| [Рис.1] Схема хеш-таблицы с закрытой адресацией (Источник: [вики-итмо](https://neerc.ifmo.ru/wiki/index.php?title=Разрешение_коллизий)) |
+| [Fig.1] Diagram of a hash table using separate chaining (Source: [LMU CMSI 281 Class](https://forns.lmu.build/classes/fall-2017/cmsi-281/lecture-14T.html)) |
 
-Если мы захотим вставить элемент в таблицу, то с помощью хеш-функции мы сможем рассчитать индекс списка, в который попадет наш элемент. Корневым элементом списка назовем ячейку, в которой будем хранить ```nullptr```, список нулевой длины будет состоять из единственной такой ячейки, а сама она характеризует конец списка. При вставлении некоторого ключа в список, будем всегда вставлять его перед корневым элементом. Чтобы избежать дубликаты в таблице, при добавлении нового элемента мы должны будем проверять весь список на наличие этого элемента, и лишь затем вставлять. 
+To insert an element into the table, we use a hash function to calculate the index of the list that will contain it. We call the node storing ```nullptr``` the root node. An empty list consists of this single node, which marks the end of the list. Each new key is inserted before the root node. To prevent duplicates, we must first search the entire list for the element and insert it only if it is absent.
 
 | ![](assets/pictures/list.png) |
 | :-:|
-| [Рис.2] Схема списка в хеш-таблице |
+| [Fig.2] Diagram of a linked list in the hash table |
 
-Становится ясно, что скорость добавления элемента будет расти вместе с длиной списка. Таким образом наша хеш-функция должна распределять элементы по спискам в таблице максимально равномерно, чтобы длина этих самых списков оставалась минимальной. Давайте выясним, какая хеш-функция имеет наилучшее распределение.
+The time required to insert an element increases with the length of the list. Our hash function should therefore distribute elements across the lists as evenly as possible to keep their lengths minimal. Let us determine which hash function produces the best distribution.
 
-## Распределения разных хеш-функций
+## Distributions of Different Hash Functions
 
-Для того чтобы получить более заметную статистику, мы должны сильно переполнить нашу хеш-таблицу. Сойдемся на том, что load-фактор должен быть равен примерно 5. То есть чтобы сделать вывод о равномерном распределении хеш-функции, каждый список должен будет хранить хотя-бы несколько элементов. Определим за размер нашей таблицы ~10000, а вставлять в нее будем ~50000 разных слов, хранящихся в файле ```assets/input/50k_in.txt```. Уточню, что размер таблицы должен быть простым числом, поэтому под обозначением ~10000 подразумевается близкое к 10000 простое число. 
+To obtain more meaningful statistics, we need to fill the hash table well beyond its number of buckets. We will use a load factor of approximately 5: each list should contain at least a few elements so that we can assess the uniformity of the distribution. We will set the table size to ~10000 and insert ~50000 distinct words from ```assets/input/50k_in.txt```. The table size must be a prime number, so ~10000 refers to a prime close to 10000.
 
-Помимо сравнения распределений с помощью графиков, удобно будет посчитать дисперсию для каждой функции: $$D^2 = \frac{\sum (a_{avg} - a_i)^2}{N}$$
+In addition to comparing the distributions visually, we will calculate the variance for each function: $$D^2 = \frac{\sum (a_{avg} - a_i)^2}{N}$$
 
-Сравнивать будем данные хеш-функции:
-1. [ConstHash](#const) (вернет константу)
-2. [FirstLetterHash](#fst_let) (вернет ASCII код первой буквы)
-3. [ASCII_SumHash](#sum) (вернет сумму ASCII кодов букв)
-4. [StrLenHash](#strlen) (вернет длину слова)
-5. [ROR_Hash](#ror) (подсчет хеша с помощью битового поворота числа вправо)
-6. [ROL_Hash](#rol) (подсчет хеша с помощью битового поворота числа влево)
-7. [CRC32_Hash](#crc32) (подсчет хеша алгоритмом CRC32)
+We will compare the following hash functions:
+1. [ConstHash](#const) (returns a constant)
+2. [FirstLetterHash](#fst_let) (returns the ASCII code of the first letter)
+3. [ASCII_SumHash](#sum) (returns the sum of the letters' ASCII codes)
+4. [StrLenHash](#strlen) (returns the word length)
+5. [ROR_Hash](#ror) (calculates the hash using a bitwise right rotation)
+6. [ROL_Hash](#rol) (calculates the hash using a bitwise left rotation)
+7. [CRC32_Hash](#crc32) (calculates the hash using the CRC32 algorithm)
 
 <a name="const"></a> 
 ### ConstHash
 
-Данная хеш-функция всегда будет возвращать одно и то же число, вне зависимости от параметра.
+This hash function always returns the same number, regardless of its argument.
 
 ```cpp
 u_int32_t ConstHash(const char* key)
@@ -41,20 +41,20 @@ u_int32_t ConstHash(const char* key)
 }
 ```
 
-Построив график мы увидим, что в нем единственный столбец не имеет нулевую высоту. Сразу обрежем масштаб по горизонтальной оси и посмотрим на результат.
+The plot contains only one bar with a nonzero height. Let us narrow the horizontal range and examine the result.
 
 | ![](assets/pictures/const.png) |
 | :-: |
-| [Рис.3] Распределение константного хеша |
+| [Fig.3] Distribution of the constant hash |
 
-Можно сделать вывод, что это ужасная хеш-функция, ведь она сводит всю хеш-таблицу в единственный список. В таком случае добавление каждого нового элемента будет занимать $O(n)$.
+This is clearly a poor hash function, since it reduces the entire hash table to a single list. In this case, inserting each new element takes $O(n)$ time.
 
 $$D = 528.67$$
 
 <a name="fst_let"></a> 
 ### FirstLetterHash
 
-Эта хеш-функция будет возвращать ASCII код первой буквы полученного слова.
+This hash function returns the ASCII code of the first letter of the input word.
 ```cpp
 u_int32_t FirstLetterHash(const char* key)
 {
@@ -64,22 +64,22 @@ u_int32_t FirstLetterHash(const char* key)
 
 | ![](assets/pictures/f_letter_far.png) |
 | :-: |
-| [Рис.4] Распределение хеша первой буквы (бол. масштаб) |
+| [Fig.4] Distribution of the first-letter hash (zoomed out) |
 
-Уже заметно, что эта хеш-функция плохо распределяет на большом массиве, давайте приблизим график чтобы понять причину.
+We can already see that this hash function distributes elements poorly across a large array. Let us zoom in to understand why.
 
 | ![](assets/pictures/f_letter_close.png) |
 | :-: |
-| [Рис.5] Распределение хеша первой буквы (мал. масштаб) |
+| [Fig.5] Distribution of the first-letter hash (zoomed in) |
 
-Теперь становится ясно, что такое распределение связано с тем, что значения лежат в диапазоне из 25 разных ASCII кодов для латинского алфавита. Это уже лучше чем просто константная хеш-функция, но на больших размерах хеш-таблицы все так же плохо.
+This distribution occurs because the values fall within a range of 25 distinct ASCII codes for Latin letters. This is better than a constant hash function, but it still performs poorly for large hash tables.
 
 $$D = 127.68$$
 
 <a name="sum"></a> 
 ### ASCII_SumHash
 
-Теперь рассмотрим функцию, которая вернет сумму ASCII кодов каждого символа в слове.
+Now let us consider a function that returns the sum of the ASCII codes of all characters in a word.
 ```cpp
 u_int32_t ASCII_SumHash(const char* key)
 {
@@ -94,43 +94,43 @@ u_int32_t ASCII_SumHash(const char* key)
 }
 ```
 
-Ради интереса протестируем ее сначала при маленьком размере таблицы. Уменьшим размер таблицы до ~500, а также уменьшим набор входных данных до ~2500 слов.
+For comparison, let us first test it with a small table. We will reduce the table size to ~500 and the input dataset to ~2500 words.
 
 | ![](assets/pictures/sum_small.png) |
 | :-: |
-| [Рис.6] Распределение хеша суммы букв (мал. размер) |
+| [Fig.6] Distribution of the ASCII-sum hash (small table) |
 
 $$D_{small} = 2.77$$ 
 
-Очень хороший результат по сравнению с тем что было раньше. Возможно эту хеш-функцию стоит использовать и в дальнейшей работе. Давайте удостоверимся, проверив ее распределение на большой таблице.
+This is a very good result compared with the previous functions. Perhaps this hash function is suitable for further use. Let us check its distribution in a large table to make sure.
 
 | ![](assets/pictures/sum_big_far.png) |
 | :-: |
-| [Рис.7] Распределение хеша суммы букв (бол. размер, бол. масштаб) |
+| [Fig.7] Distribution of the ASCII-sum hash (large table, zoomed out) |
 
-Произошло что-то очень плохое, давайте приблизим и узнаем причину.
+Something has gone badly wrong. Let us zoom in to find out why.
 
 | ![](assets/pictures/sum_big_close.png) |
 | :-: |
-| [Рис.8] Распределение хеша суммы букв (бол. размер, мал. масштаб) |
+| [Fig.8] Distribution of the ASCII-sum hash (large table, zoomed in) |
 
-По нескольким причинам хеш-функция стала плохо работать:
+The hash function performs poorly for several reasons:
 
-1) Списки с индексом более 2000 оказываются пустыми. В наборе наших данных банально нет слов достаточной длины, для того чтобы покрыть эти значения.
-2) Распределение состоит из множества пиков. Это связано с тем, что минимальный ASCII код у буквы 'a' равен 97. То есть слова разной длины будут заметно отличаться по сумме ASCII кодов.
+1) Lists with indices greater than 2000 are empty. Our dataset simply contains no words long enough to produce these values.
+2) The distribution has multiple peaks. This is because the lowest ASCII code among lowercase letters is 97, for 'a'. As a result, words of different lengths have noticeably different sums of ASCII codes.
 
 $$D_{big} = 19.73$$
 
-Дисперсия подтверждает факт того, что на больших размерах функция ведет себя очень плохо.
+The variance confirms that the function performs very poorly for large tables.
 
-С чем же связана такая разница в поведении в зависимости от размера таблицы? На малых размерах сумма может "завернуться" так, чтобы переполнив размер таблицы, покрыть зазор между пиками и распределиться по всему диапазону. При больших размерах такой возможности нет, поэтому мы получим ярко выраженные пики и "перекошенные" влево длины списков.
+Why does the behavior differ so much depending on the table size? In small tables, the sum can wrap around modulo the table size, filling the gaps between peaks and spreading values across the entire range. In large tables, this cannot happen, so we get pronounced peaks and list lengths concentrated toward the left side of the plot.
 
-Можно сделать вывод, что это достаточно "коварная" функция. На малых размерах (порядка 500) она ведет себя достаточно хорошо, и некоторым может показаться что её стоит использовать, но для больших по размеру таблиц она уже не подойдет.
+This makes the function rather deceptive. It performs well for small tables of around 500 buckets and may seem suitable for use, but it is unsuitable for larger tables.
 
 <a name="strlen"></a> 
 ### StrLenHash
 
-Данная хеш-функция возвращает как значение длину слова.
+This hash function returns the word length.
 
 ```cpp
 u_int32_t StrLenHash(const char* key)
@@ -142,22 +142,22 @@ u_int32_t StrLenHash(const char* key)
 ```
 | [](assets/pictures/strlen_far.png) |
 | :-: |
-| [Рис.9] Распределение хеша длины слова (бол. масштаб) |
+| [Fig.9] Distribution of the word-length hash (zoomed out) |
 
-Можем увидеть, что все значения сконцентрированы в крайне маленьком диапазоне.
+All values are concentrated within a very narrow range.
 
 | ![](assets/pictures/strlen_close.png) |
 | :-: |
-| [Рис.10] Распределение хеша длины слова (мал. масштаб) |
+| [Fig.10] Distribution of the word-length hash (zoomed in) |
 
-Из данного графика мы можем сделать выводы, слова какой длины встречаются чаще всего. Слова длины более 15 букв можно считать редкостью, причем слова некоторой длины могут встречаться чаще остальных. Из-за этих особенностей эта функция точно не подойдет для использования в хеш-таблицах.
+This plot shows which word lengths occur most frequently. Words longer than 15 letters are rare, and some lengths occur more often than others. These characteristics make this function unsuitable for hash tables.
 
 $$D = 166.33$$ 
 
 <a name="ror"></a> 
 ### ROR_Hash
 
-Данная функция считает хеш используя команду ```ror```. Эту команду называют вращением числа, последняя буква (в нашем случае r) определяет направление вращения вправо. При использовании этой команды, все биты числа передвигаются вправо, а самый правый бит переходит в начало. Реализуем данную команду с помощью своей функции на языке Си.
+This function calculates the hash using the ```ror``` instruction. This operation rotates a number, with the final letter (r in this case) indicating rotation to the right. All bits move one position to the right, and the rightmost bit wraps around to the leftmost position. Let us implement this operation in C.
 
 ```cpp
 uint32_t Ror(uint32_t num)
@@ -166,19 +166,19 @@ uint32_t Ror(uint32_t num)
 }
 ```
 
-Фактически мы реализовали ассемблерную команду с помощью функции. Ради интереса можно посмотреть, догадается ли компилятор заменить эту функцию одной командой. Сначала рассмотрим версию без флагов оптимизации:
+We have effectively implemented an assembly instruction as a function. It is interesting to see whether the compiler recognizes it and replaces the function with a single instruction. First, let us compile it without optimization flags:
 
 | ![](assets/pictures/ror_no_flag.png) |
 | :-: |
-| [Рис.11] Компиляция поворота вправо (без флагов) |
+| [Fig.11] Compiled right rotation (without optimization flags) |
 
-Компилятор догадался и обнаружил команду ror даже без флагов оптимизаций, сравним что получится с флагами:
+The compiler recognized the rotation and emitted a ror instruction even without optimization flags. Let us compare this with the optimized version:
 
 | ![](assets/pictures/ror_O3.png) |
 | :-: |
-| [Рис.12] Компиляция поворота вправо (с флагами) |
+| [Fig.12] Compiled right rotation (with optimization flags) |
 
-Компилятор упростил код, оставив важную для нас оптимизацию.
+The compiler simplified the code while retaining the optimization we need.
 
 ```cpp
 u_int32_t ROR_Hash(const char* key)
@@ -197,16 +197,16 @@ u_int32_t ROR_Hash(const char* key)
 ```
 | ![](assets/pictures/ror.png) |
 | :-: |
-| [Рис.13] Распределение хеша правого поворота |
+| [Fig.13] Distribution of the right-rotation hash |
 
-Эту хеш-функцию уже уверенно можно причислить к числу хороших. Как заметно на графике, она покрывает все значения от 0 до ~10000 примерно равномерно, если не считать единичных пиков. 
+We can confidently classify this as a good hash function. As the plot shows, it covers all values from 0 to ~10000 fairly evenly, apart from a few isolated peaks.
 
 $$D = 5.72$$
 
 <a name="rol"></a> 
 ### ROL_Hash
 
-Эта хеш-функция почти ничем не отличается от предыдущей, помимо того что она использует команду ```rol```, которая проворачивает число влево. Реализуем функцию поворота влево таким образом:
+This hash function is almost identical to the previous one, except that it uses the ```rol``` instruction, which rotates a number to the left. We will implement left rotation as follows:
 
 ```cpp
 uint32_t Rol(uint32_t num)
@@ -215,19 +215,19 @@ uint32_t Rol(uint32_t num)
 }
 ```
 
-Проведем такой же эксперимент как в прошлом пункте. Без оптимизаций компилятор выдаст данный код:
+Let us repeat the experiment from the previous section. Without optimizations, the compiler produces the following code:
 
 | ![](assets/pictures/ror_no_flag.png) |
 | :-: |
-| [Рис.14] Компиляция поворота влево (без флагов) |
+| [Fig.14] Compiled left rotation (without optimization flags) |
 
-Теперь с оптимизацией:
+Now with optimization enabled:
 
 | ![](assets/pictures/ror_O3.png) |
 | :-: |
-| [Рис.15] Компиляция поворота влево (с флагами) |
+| [Fig.15] Compiled left rotation (with optimization flags) |
 
-Все аналогично прошлой функции, компилятор может заметить команду поворота и заменить на команду ```rol```.
+As with the previous function, the compiler recognizes the rotation and replaces it with a ```rol``` instruction.
 
 ```cpp
 u_int32_t ROL_Hash(const char* key)
@@ -246,16 +246,16 @@ u_int32_t ROL_Hash(const char* key)
 ```
 | ![](assets/pictures/rol.png) |
 | :-: |
-| [Рис.16] Распределение хеша левого поворота |
+| [Fig.16] Distribution of the left-rotation hash |
 
-Аналогично с прошлой хеш-функцией, мы получаем хорошее и равномерное распределение по всему диапазону индексов.
+As with the previous hash function, we obtain a good, uniform distribution across the entire range of indices.
 
 $$D = 3.86$$
 
 <a name="crc32"></a> 
 ### CRC32_Hash
 
-Данная хеш-функция использует алгоритм, называемый [CRC](https://en.wikipedia.org/wiki/Cyclic_redundancy_check).
+This hash function uses an algorithm called [CRC](https://en.wikipedia.org/wiki/Cyclic_redundancy_check).
 
 ```cpp
 u_int32_t CRC32_Hash(const char* key)
@@ -279,63 +279,63 @@ u_int32_t CRC32_Hash(const char* key)
     return ~crc;
 }
 ```
-Построив график, получим:
+Plotting the distribution gives:
 
 | ![](assets/pictures/crc32.png) |
 | :-: |
-| [Рис.17] Распределение хеша CRC32 |
+| [Fig.17] Distribution of the CRC32 hash |
 
-Визуально заметно, что это самое равномерное распределение из всех, рассмотренных нами ранее. Эту функцию мы и будем использовать в дальнейшей работе, как самую лучшую из рассмотренных.
+Visually, this is the most uniform distribution of all the functions considered so far. We will use this function in the rest of the project, since it is the best of those tested.
 
 $$D = 2.30$$
 
-Дисперсия так же подтверждает наш вывод о результатах функций.
+The variance also supports our comparison of the functions.
 
-### Промежуточный итог
+### Interim Results
 
-Зависимость дисперсий от выбора хеш-функций:
+Variance for each hash function:
 
 
-| Хеш-функция                 | Дисперсия                                                       |
+| Hash function               | Variance                                                        |
 |:---------------------------:|:---------------------------------------------------------------:|
 | [CRC32_Hash](#crc32)        | 2.30                                                            |
-| [ASCII_SumHash](#sum) (мал.) | 2.77                                                           |
+| [ASCII_SumHash](#sum) (small) | 2.77                                                           |
 | [ROL_Hash](#rol)            | 3.86                                                            |
 | [ROR_Hash](#ror)            | 5.72                                                            |
-| [ASCII_SumHash](#sum) (бол.) | 19.74                                                          |
+| [ASCII_SumHash](#sum) (large) | 19.74                                                          |
 | [FirstLetterHash](#fst_let) | 127.68                                                          |
 | [StrLenHash](#strlen)       | 166.33                                                          |
 | [ConstHash](#const)         | 528.67                                                          | 
 
-Из всех рассмотренных нами хеш-функцией, ```CRC32_Hash```, ```ROL_Hash``` и ```ROR_Hash``` действительно имеют хорошее распределение и их можно использовать для таблиц любого размера. Также имеет смысл отметить функцию ```ASCII_SumHash```. Несмотря на то, что она плохо работает для больших хеш-таблиц, для таблиц размера ~500 ее вполне можно использовать, как равномерную и легкую в написании. Лучшей же среди всех функций будем считать ```CRC32_Hash```.
+Of all the hash functions considered, ```CRC32_Hash```, ```ROL_Hash```, and ```ROR_Hash``` produce good distributions and can be used for tables of any size. ```ASCII_SumHash``` also deserves a mention: although it performs poorly for large hash tables, it is easy to implement and provides a sufficiently uniform distribution for tables of around 500 buckets. We will consider ```CRC32_Hash``` the best function overall.
 
-## Оптимизации для хеш-таблицы.
+## Hash Table Optimizations
 
-Мы рассмотрели распределение нескольких хеш-функций, теперь же имеет смысл сфокусироваться на времени работы программы. Для того чтобы его узнать, заполним хеш-таблицу набором из 370000 разных слов (файл ```370k_in.txt```). Параллельно с заполнением таблицы сохраним эти слова в массиве. После этого будем пропускать 100 раз массив из этих слов, запуская функцию поиска выбранного нами слова в хеш-таблице. Чтобы проверять корректность работы, будем считать за $val$ номер слова по порядку в словаре. Получая это значение будем сравнивать его с индексом этого слова в массиве, и эти номера должны совпасть. 
+Having examined the distributions of several hash functions, we can now focus on the program's execution time. We will fill the hash table with 370000 distinct words from ```370k_in.txt```, also storing these words in an array. We will then iterate through the array 100 times, looking up each word in the hash table. To verify correctness, we will use each word's position in the dictionary as its $val$. The returned value must match the word's index in the array.
 
-Делать замеры будем с помощью ассемблерной команды ```rdtsc```. Благодаря ней мы сможем измерить разницу тактов между началом и концом нужного нам алгоритма, найденная разница как раз будет характеризовать время его работы. Запускать программу будем 3 раза, а затем вычислять среднее значение тактов по методу наименьших квадратов. Компилировать любой запуск будем с флагами ```-O3 -mavx2```.
+We will measure execution time using the ```rdtsc``` assembly instruction. It lets us measure the difference in clock ticks between the beginning and end of the algorithm, which characterizes its execution time. We will run the program 3 times and then calculate the average tick count using the least squares method. Every version will be compiled with the ```-O3 -mavx2``` flags.
 
-Описанным образом измерим время работы нашей программы. Обозначим за $t_i$ количество тактов в измерении, где $i$ это номер измерения. $t_{avg}$ будет средним количеством тактов по трём измерениям, посчитанное с помощью МНК.
+We will use this procedure to measure the program's execution time. Let $t_i$ denote the tick count in measurement $i$. $t_{avg}$ is the average tick count across the three measurements, calculated using the least squares method.
 
-|  Версия программы  |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
+|  Program version   |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
 |:------------------:|:-------------:|:-------------:|:-------------:|:---------------------------:|
-| Без оптимизаций    | $61933960366$ | $60676206064$ | $61926101368$ | $(61.5 \pm 1.0) \cdot 10^9$ |
+| Unoptimized        | $61933960366$ | $60676206064$ | $61926101368$ | $(61.5 \pm 1.0) \cdot 10^9$ |
 
-Характерное время работы ~ 30 секунд.
+Typical execution time: ~30 seconds.
 
-### Первая оптимизация (intrinsic)
+### First Optimization (Intrinsics)
 
-Попробуем улучшить данный результат. С этим нам поможет программа [valgrind](https://valgrind.org/docs/manual/cl-manual.html). С помощью команды в консоли ```valgrind  --tool=callgrind ./table```, где ```./table``` это исполняемый файл нашей программы, мы сможем получить файл с характеристикой работы каждой функции. Для просмотра этого файла воспользуемся утилитой [kcachegrind](https://kcachegrind.sourceforge.net/html/Home.html). Таким образом получим вот такие сведения о работе наших функций:
+Let us try to improve this result with [Valgrind](https://valgrind.org/docs/manual/cl-manual.html). Running ```valgrind  --tool=callgrind ./table```, where ```./table``` is our executable, generates a file containing profiling data for each function. We will view this file using [KCachegrind](https://kcachegrind.sourceforge.net/html/Home.html). This gives us the following information about our functions:
 
 | ![](assets/pictures/no_opt.png)|
 | :-: |
-| [Рис.18] Затратные функции в хеш-таблице без оптимизаций |
+| [Fig.18] Most expensive functions in the unoptimized hash table |
 
-Можем увидеть, что самая затратная функция - подсчет хеша $CRC32_Hash$. В связи с этим нам следует заняться её оптимизацией.
+The most expensive function is the hash calculation, $CRC32_Hash$, so we should optimize it first.
 
-Результат распределения рассмотренной нами [хеш-функции](#strlen) позволяет нам заметить, что длина слов в нашем наборе не превышает 32. С этого момента имеет смысл предполагать, что все слова в нашей хеш-таблице имеют длину не более 32 букв, иначе же, мы будем помещать их во вторую хеш-таблицу. Но во вторую хеш-таблицу будет помещаться очень малое количество слов (если набор наших данных будет связан с английским языком), поэтому такой заменой мы почти никак не повлияем на скорость. 
+The distribution of the [hash function](#strlen) examined earlier shows that words in our dataset are no longer than 32 characters. From this point on, we will assume that all words in our hash table contain at most 32 characters; longer words will be stored in a second hash table. For an English-language dataset, very few words will go into that second table, so this change should have almost no effect on performance.
 
-Стоит вспомнить, что имеется intrinsic функция ```_mm_crc32_u32```, возвращаюшая хеш по алгоритму crc32. Оптимизируем функцию подчета хеша, посчитав его с помощью intrinsic функций, а так же считая что все слова дополнены до 32 букв.
+The ```_mm_crc32_u32``` intrinsic calculates a hash using the crc32 algorithm. We will optimize the hash calculation using intrinsics, assuming that all words are padded to 32 characters.
 
 ```cpp
 uint32_t Fast_CRC32_Hash(const char* key)
@@ -353,41 +353,41 @@ uint32_t Fast_CRC32_Hash(const char* key)
 }
 ```
 
-Дополним нашу таблицу измерений.
+Let us add the results to our measurement table.
 
-|  Версия программы  |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
+|  Program version   |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
 |:------------------:|:-------------:|:-------------:|:-------------:|:---------------------------:|
-| Без оптимизаций    | $61933960366$ | $60676206064$ | $61926101368$ | $(61.5 \pm 1.0) \cdot 10^9$ |
+| Unoptimized        | $61933960366$ | $60676206064$ | $61926101368$ | $(61.5 \pm 1.0) \cdot 10^9$ |
 | Intrinsic crc32    | $36129613314$ | $36106511268$ | $35348591830$ | $(35.8 \pm 0.5) \cdot 10^9$ |
 
-Характерное время работы ~ 20 секунд.  
+Typical execution time: ~20 seconds.
 
-Можем посчитать ускорения для первой оптимизации. Абсолютным будем называть ускорение, рассчитываемое относительно первоначальной версии. Относительным же будет ускорение относительно предыдущей версии программы.
+We can now calculate the speedup from the first optimization. Absolute speedup is measured against the original version, while relative speedup is measured against the previous version of the program.
 
-| Версия программы | Абсолютное ускорение | Относительное ускорение |
+| Program version  | Absolute speedup     | Relative speedup        |
 | :--------------: | :------------------: | :---------------------: |
-| Без оптимизаций  |        $1.0$         |            $1.0$        |
+| Unoptimized      |        $1.0$         |            $1.0$        |
 | Intrinsic crc32  |  $1.72 \pm 0.08$     |  $1.72 \pm 0.08$        |
 
-Ради интереса, сравним распределение оптимизированной нами хеш-функции с распределением, найденным ранее.
+For comparison, let us examine the distribution of the optimized hash function alongside the earlier result.
 
 | ![](assets/pictures/fast_crc32.png)|
 | :-: |
-| [Рис.19] Распределение оптимизированной хеш-функции |
+| [Fig.19] Distribution of the optimized hash function |
 
 $$D = 2.25$$
 
-Получаем, что данная реализация возможно работает быстрее в том числе благодаря более равномерному распределению.
+This implementation may therefore owe part of its speedup to a more uniform distribution.
 
-### Вторая оптимизация (ассемблерная вставка)
+### Second Optimization (Inline Assembly)
 
-Снова найдем функцию, тормозящую выполнение программы, с помощью ```valgrind```.
+Let us use ```valgrind``` again to identify the function slowing down the program.
 
 | ![](assets/pictures/1st_opt.png)|
 | :-: |
-| [Рис.20] Затратные функции в хеш-таблице после первой оптимизации |
+| [Fig.20] Most expensive functions in the hash table after the first optimization |
 
-Теперь дольше всего исполняется стандартная функция ```__strcmp_sse2_unaligned```. Найдем место, где она вызывается.
+The standard library function ```__strcmp_sse2_unaligned``` now takes the most time. Let us find where it is called.
 
 ```cpp
 node_t* FindKeyInList(node_t* root_cell, const char* key)
@@ -404,12 +404,12 @@ node_t* FindKeyInList(node_t* root_cell, const char* key)
 }
 ```
 
-Как мы видим, эта функция используется в единственном месте, для того чтобы сравнить совпадают ли ключи. Можем оптимизовать её, реализовав свою функцию с некоторыми особенностями:
+This function is called in only one place, to check whether two keys match. We can optimize it by implementing our own function with the following characteristics:
 
-1) Мы ранее договорились дополнять слова до размера 32 букв, значит, наши слова могут идеально помещаться в регистре ```ymm0```. Давайте же будем класть наши слова в эти регистры, а затем сравнивать их содержимое с помощью инструкции ```vptest```.
-2) Нас уже не интересует, насколько отличаются слова и какое из них лексиграфически должно идти первее. Постараемся ограничить лишние вычисления и возвращать только 2 разных числа: 0 если строки совпадают, не 0 если отличаются. Причем возвращаемое число, если оно не равно 0, фактически не будет иметь никакого смысла в плане характера различия наших строк.
+1) We previously agreed to pad words to 32 characters, so each word fits exactly into the ```ymm0``` register. We can load words into these registers and compare their contents using the ```vptest``` instruction.
+2) We no longer need to know how the words differ or which comes first lexicographically. To avoid unnecessary calculations, we will return only two possible values: 0 if the strings match and a nonzero value if they differ. A nonzero return value will convey no information about the nature of the difference.
 
-Используя данные идеи, реализуем свою функцию сравнения слов с помощью ассемблерной вставки.
+Using these ideas, we will implement our own word comparison function with inline assembly.
 
 ```cpp
 static inline int _StrCmp(const char* key1, const char* key2)
@@ -437,32 +437,32 @@ static inline int _StrCmp(const char* key1, const char* key2)
 }
 ```
 
-Что же значит команда ```vzeroupper``` в конце вставки? [Заявляется](https://www.felixcloutier.com/x86/vzeroupper), что она очищает верхнюю половину векторного регистра, что в дальнейшем позволяет избежать задержки при переходе с AVX инструкций на SSE инструкции. Давайте проведем измерения и узнаем, правда ли она влияет на производительность программы.
+What does the ```vzeroupper``` instruction at the end of the assembly block do? It is [documented](https://www.felixcloutier.com/x86/vzeroupper) as clearing the upper half of the vector registers, which can prevent a penalty when transitioning from AVX instructions to SSE instructions. Let us measure whether it affects the program's performance.
 
-|  Версия программы       |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
+|  Program version        |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
 |:-----------------------:|:-------------:|:-------------:|:-------------:|:---------------------------:|
 | asm strcmp              | $21617596190$ | $23359304322$ | $22169181334$ | $(22.5 \pm 1.0) \cdot 10^9$ |
 | asm strcmp + vzeroupper | $22582716722$ | $22035352200$ | $22404409400$ | $(22.3 \pm 0.5) \cdot 10^9$ |
 
-Характерное время работы ~ 10-15 секунд.
+Typical execution time: ~10–15 seconds.
 
-Как мы видим, разница в скорости между этими случаями не так велика. Оставим инструкцию ```vzeroupper``` на случай, если она поможет в дальнейшем. Теперь посчитаем ускорение этой оптимизации относительно предыдущих. 
+The performance difference between these two versions is small. We will keep ```vzeroupper``` in case it helps later. Now let us calculate the speedup relative to the previous versions.
 
-| Версия программы | Абсолютное ускорение | Относительное ускорение |
+| Program version  | Absolute speedup     | Relative speedup        |
 | :--------------: | :------------------: | :---------------------: |
-| Без оптимизаций  |        $1.0$         |            $1.0$        |
+| Unoptimized      |        $1.0$         |            $1.0$        |
 | Intrinsic crc32  |  $1.72 \pm 0.08$     | $1.72 \pm 0.08$         |
 | Asm strcmp       |  $2.75 \pm 0.17$     | $1.60 \pm 0.12$         |
 
-### Третья оптимизация (функция на ассемблере)
+### Third Optimization (Assembly Function)
 
-Вновь проделаем тот же алгоритм, что и в предыдущие разы. Проанализируем скорость нашей программы с помощью утилиты ```valgrind```.
+We will repeat the same procedure and analyze the program's performance using ```valgrind```.
 
 | ![](assets/pictures/2nd_opt.png)|
 | :-: |
-| [Рис.21] Затратные функции в хеш-таблице после второй оптимизации |
+| [Fig.21] Most expensive functions in the hash table after the second optimization |
 
-Теперь же больше всего по времени работает функция ```HashtableGet```, которая ищет ключ по запросу в таблице. Давайте рассмотрим её код.
+The most time is now spent in ```HashtableGet```, which looks up a requested key in the table. Let us examine its code.
 
 ```cpp
 int HashtableGet(hashtable_t* table, const char* key)
@@ -482,7 +482,7 @@ int HashtableGet(hashtable_t* table, const char* key)
 }
 ```
 
-Единственную возможность оптимизации этой функции можно заметить в вызываемой внутри неё ```FindKeyInList```, которая ищет элемент в списке. 
+The only apparent opportunity for optimization is in ```FindKeyInList```, which it calls to search for an element in a list.
 
 ```cpp
 node_t* FindKeyInList(node_t* root_cell, const char* key)
@@ -501,7 +501,7 @@ node_t* FindKeyInList(node_t* root_cell, const char* key)
 }
 ```
 
-С помощью [godbolt](https://godbolt.org) узнаем, во что компилируется эта функция при флаге оптимизации ```-O3```.
+Using [Godbolt](https://godbolt.org), we can see how this function is compiled with the ```-O3``` optimization flag.
 
 ```nasm
         mov     rdx, QWORD PTR [rdi]               ; rdx = root_cell
@@ -528,11 +528,11 @@ node_t* FindKeyInList(node_t* root_cell, const char* key)
         ret
 ```
 
-Заметим сразу две возможные оптимизации:
-1) Давайте вместо того, чтобы в каждом заходе цикла класть в ```ymm0``` новое слово, положим в него самом начале строку ```key```, а затем уже будем в цикле сравнивать этот регистр со словами в ячейках списка. 
-2) Нам не нужно исполнять команду ```vzeroupper``` после каждого цикла, так как в промежутке между ними мы не переходим на использование SSE инструкций. Имеет смысл использовать ```vzeroupper``` единожды перед выходом из функции.
+There are two possible optimizations:
+1) Instead of loading a new word into ```ymm0``` on every iteration, we can load the ```key``` string once at the start and compare this register against the words in the list nodes inside the loop.
+2) We do not need to execute ```vzeroupper``` after every iteration, since we do not switch to SSE instructions between iterations. It makes sense to execute ```vzeroupper``` only once, before returning from the function.
 
-Пользуясь данными выводами напишем в отдельном файле ```findkey.s``` свою ассемблерную функцию поиска ключа в списке.
+Using these observations, we will write our own assembly function for finding a key in a list in a separate file, ```findkey.s```.
 
 ```nasm
 _FindKey:           mov     rdx, QWORD [rdi]            ; rdx = root_cell
@@ -558,46 +558,42 @@ _FindKey:           mov     rdx, QWORD [rdi]            ; rdx = root_cell
                     ret
 ```
 
-Теперь протестируем время исполнения данной функции.
+Now let us measure the execution time of this function.
 
-|  Версия программы          |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
+|  Program version           |   $t_1$       | $t_2$         | $t_3$         | $t_{avg}$                   |
 |:--------------------------:|:-------------:|:-------------:|:-------------:|:---------------------------:|
-| Поиск ключа в списке (asm) | $19632116282$ | $19148328314$ | $18843343012$ | $(19.2 \pm 0.5) \cdot 10^9$ |
+| List key lookup (asm)     | $19632116282$ | $19148328314$ | $18843343012$ | $(19.2 \pm 0.5) \cdot 10^9$ |
 
-Характерное время работы ~ 10 секунд.
+Typical execution time: ~10 seconds.
 
-| Версия программы           | Абсолютное ускорение | Относительное ускорение |
+| Program version            | Absolute speedup     | Relative speedup        |
 | :------------------------: | :------------------: | :---------------------: |
-| Без оптимизаций            |        $1.0$         |            $1.0$        |
+| Unoptimized                |        $1.0$         |            $1.0$        |
 | Intrinsic crc32            |  $1.72 \pm 0.08$     | $1.72 \pm 0.08$         |
 | Asm strcmp                 |  $2.75 \pm 0.17$     | $1.60 \pm 0.12$         |
-| Поиск ключа в списке (asm) |  $3.20 \pm 0.22$     | $1.17 \pm 0.11$         |
+| List key lookup (asm)     |  $3.20 \pm 0.22$     | $1.17 \pm 0.11$         |
 
-Мы получаем уже сравнительно малое относительное ускорение, а это значит, что на этой оптимизации можно остановиться. При дальнейших действиях мы лишь сильно усложним код, но выиграем сравнительно мало времени. 
+The relative speedup is now fairly small, suggesting that we can stop optimizing here. Further changes would make the code considerably more complex while saving relatively little time.
 
-### Анализ оптимизаций
+### Optimization Analysis
 
-Как известно, оптимизации дают выигрыш во скорости работы программы, но зачастую слишком усложняют её читабельность. Давайте введем коэффицент, учитывающий эти факторы, и с помощью этого коэффициента сравним проделанные нами оптимизации.
+Optimizations improve program performance but often make the code harder to read. Let us introduce a coefficient that accounts for these factors and use it to compare our optimizations.
 
 $$K = \frac{T_{before}}{T_{after}} \cdot \frac{1}{N_{strings}} \cdot 1000$$
 
-| Версия программы           | $\frac{T_{before}}{T_{after}}$ | $N_{strings}$           |  $K$          |
+| Program version            | $\frac{T_{before}}{T_{after}}$ | $N_{strings}$           |  $K$          |
 | :------------------------: | :----------------------------: | :---------------------: | :-----------: |
 | Intrinsic crc32            |   $1.72 \pm 0.08$              | 5                       | $344 \pm 16$  |
 | Asm strcmp                 |   $1.60 \pm 0.12$              | 13                      | $123 \pm 9$   |
-| Поиск ключа в списке (asm) |   $1.17 \pm 0.11$              | 20                      | $58  \pm 5$   |
+| List key lookup (asm)     |   $1.17 \pm 0.11$              | 20                      | $58  \pm 5$   |
 
-В целом мои предположения подтвердились, оптимизация хеш-функции оказалась очень выгодной и удобной для чтения, в отличие от оптимизации функции поиска ключа. Можно сделать вывод, что ассмеблерную оптимизацию не всегда имеет смысл реализовывать, ведь она может не давать значительного ускорения программе, но при этом она будет сильно усложнять чтение и понимание кода человеку со стороны [Рис. 22].
+Overall, the results support my expectations: optimizing the hash function was highly beneficial and kept the code readable, whereas optimizing the key lookup function offered less benefit. Assembly optimizations are not always worthwhile: they may provide only a modest speedup while making the code much harder for another reader to understand.
 
-| ![](assets/pictures/code.png)|
-| :-: |
-| [Рис.22] Пример видения кода с множеством оптимизаций (от лица стороннего человека) |
+## Conclusion
 
-## Вывод
+This lab demonstrates that the distribution produced by a hash function has a substantial impact on hash table performance. A uniform distribution can make the program tens of times faster. However, it is not the only way to speed up a hash table.
 
-Подводя итог всей лабораторной работе, можно отметить, что на скорость работы хеш-таблицы достаточно сильно влияет распределение используемой хеш-функции. Равномерное распределение способно ускорить работу нашей программы в десятки раз. Но это не единственный способ ускорения хеш-таблицы. 
-
-Имеет смысл использовать ассемблерные оптимизации, такие как intrinsic функции, вставки, реализация функций на ассемблере и прочее. Такие оптимизации способны ускорить работу программы более чем в 3 раза. Но не стоит забывать о читабельности кода, ведь в большинстве случаев оптимизации сильно усложняют понимание кода для человека со стороны, и в связи с этим могут нести больше вреда чем пользы.
+Assembly optimizations, including intrinsics, inline assembly, and functions written in assembly, can improve performance by more than a factor of 3. Readability must also be considered: optimizations often make the code much harder for others to understand and can therefore do more harm than good.
 
 
 
